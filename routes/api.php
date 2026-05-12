@@ -1,42 +1,18 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
+// Route Publik (Tanpa Login)
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
+// Route Terproteksi (Harus Login)
 Route::middleware('auth:sanctum')->group(function () {
-    // Route ini hanya bisa diakses jika Login berhasil
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
-    Route::post('/logout', function (Request $request) {
-        // Hapus token yang sedang digunakan saat ini
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logged out']);
-    });
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-        'device_name' => 'required', // Nama perangkat (misal: iPhone 15)
-    ]);
-
-    $user = User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        throw ValidationException::withMessages([
-            'email' => ['Kredensial yang diberikan salah.'],
-        ]);
-    }
-
-    // Buat token dan kembalikan plain text-nya
-    return response()->json([
-        'token' => $user->createToken($request->device_name)->plainTextToken
-    ]);
-});
