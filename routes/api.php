@@ -15,7 +15,14 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/users', [UserController::class, 'index']);
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/users', 'index');
+        Route::post('/users', 'store');
+        Route::get('/users/{id}', 'show');
+        Route::put('/users/{id}', 'update');
+        Route::patch('/users/{id}', 'update');
+        Route::delete('/users/{id}', 'destroy');
+    });
 
     Route::post('/logout', [AuthController::class, 'logout']);
 });
